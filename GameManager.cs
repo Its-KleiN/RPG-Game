@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 
@@ -25,10 +26,10 @@ public class GameManager
     public void StartGame()
     {
         Console.Clear();
-
         Console.WriteLine("=== RPG Game ===");
 
         CreatePlayer();
+        CreateStartingItems();
 
         City westholm = new City(
             "Вестхолм",
@@ -92,10 +93,7 @@ public class GameManager
         Console.WriteLine("Гру розпочато!");
         Console.WriteLine("Ви знаходитесь у Вестхолмі.");
 
-        Console.WriteLine();
-        Console.WriteLine("Натисніть будь-яку клавішу...");
-        Console.ReadKey();
-
+        Pause();
         GameLoop();
     }
 
@@ -103,7 +101,7 @@ public class GameManager
     {
         Console.WriteLine("Введіть ім'я гравця:");
 
-        string name = Console.ReadLine();
+        string name = Console.ReadLine() ?? "";
 
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -121,14 +119,92 @@ public class GameManager
 
         Inventory = new Inventory(
             "Інвентар гравця",
-            20,
-            0,
+            50.0,
             Player.Name,
-            "Player",
-            false
+            "Особистий"
         );
 
         QuestManager = new QuestManager();
+    }
+
+    public void CreateStartingItems()
+    {
+        Resource ironOre = new Resource(
+            "Залізна руда",
+            "Руда для переплавлення",
+            2.5,
+            15
+        );
+
+        Food apple = new Food(
+            "Яблуко",
+            "Свіже червоне яблуко",
+            0.2,
+            5,
+            20,
+            5,
+            10
+        );
+
+        Potion healingPotion = new Potion(
+            "Мале лікувальне зілля",
+            "Відновлює 20 одиниць здоров'я",
+            0.2,
+            30,
+            20
+        );
+
+        Weapon sword = new Weapon(
+            "Залізний меч",
+            "Звичайний одноручний меч",
+            3.5,
+            150,
+            1,
+            100,
+            25,
+            DamageType.Slashing
+        );
+
+        Armor armor = new Armor(
+            "Шкіряна броня",
+            "Легкий шкіряний обладунок",
+            5.0,
+            100,
+            1,
+            100,
+            8,
+            5,
+            3
+        );
+
+        Accessory ring = new Accessory(
+            "Перстень дипломата",
+            "Золотий перстень із родовим гербом",
+            0.1,
+            200,
+            2,
+            100,
+            SocialBonusType.Persuasion,
+            2
+        );
+
+        Bag backpack = new Bag(
+            "Дорожній рюкзак",
+            "Міцний рюкзак для подорожей",
+            2.0,
+            80,
+            1,
+            100,
+            30.0
+        );
+
+        Inventory.AddItem(ironOre, 5);
+        Inventory.AddItem(apple, 3);
+        Inventory.AddItem(healingPotion, 2);
+        Inventory.AddItem(sword);
+        Inventory.AddItem(armor);
+        Inventory.AddItem(ring);
+        Inventory.AddItem(backpack);
     }
 
     public void AddCity(City city)
@@ -159,6 +235,21 @@ public class GameManager
         Console.WriteLine($"Кількість караванів: {Caravans.Count}");
     }
 
+    public void AdvanceDays(int days)
+    {
+        if (days <= 0)
+        {
+            throw new ArgumentException(
+                "Кількість днів повинна бути більшою за нуль.");
+        }
+
+        for (int i = 0; i < days; i++)
+        {
+            CurrentDay++;
+            Player.AdvanceDay();
+        }
+    }
+
     public void GameLoop()
     {
         bool isRunning = true;
@@ -172,6 +263,8 @@ public class GameManager
             Console.WriteLine("================================");
             Console.WriteLine($"День: {CurrentDay}");
             Console.WriteLine($"Місце: {Player.CurrentLocation}");
+            Console.WriteLine($"Здоров'я: {Player.Health}/{Player.MaxHealth}");
+            Console.WriteLine($"Ситість: {Player.Satiety}/{Player.MaxSatiety}");
             Console.WriteLine($"Золото: {Player.Gold}");
             Console.WriteLine();
 
@@ -189,7 +282,7 @@ public class GameManager
             Console.WriteLine();
             Console.Write("Виберіть дію: ");
 
-            string choice = Console.ReadLine();
+            string choice = Console.ReadLine() ?? "";
 
             switch (choice)
             {
@@ -265,11 +358,13 @@ public class GameManager
                     break;
 
                 case "9":
-                    CurrentDay++;
+                    AdvanceDays(1);
 
                     Console.Clear();
-                    Console.WriteLine($"Настав новий день.");
+                    Console.WriteLine("Настав новий день.");
                     Console.WriteLine($"Зараз день {CurrentDay}.");
+                    Console.WriteLine(
+                        $"Ситість: {Player.Satiety}/{Player.MaxSatiety}");
 
                     Pause();
                     break;
@@ -313,16 +408,14 @@ public class GameManager
         Console.WriteLine();
         Console.Write("Виберіть місто: ");
 
-        string choice = Console.ReadLine();
+        string choice = Console.ReadLine() ?? "";
 
         if (choice == "0")
         {
             return;
         }
 
-        int selectedNumber;
-
-        if (!int.TryParse(choice, out selectedNumber))
+        if (!int.TryParse(choice, out int selectedNumber))
         {
             Console.WriteLine("Невірний вибір.");
             Pause();
@@ -346,13 +439,14 @@ public class GameManager
                     Console.WriteLine();
                     Console.WriteLine("Подорож займає 3 дні.");
 
-                    CurrentDay += 3;
-
+                    AdvanceDays(3);
                     Player.ChangeLocation(city.Name);
 
                     Console.WriteLine();
-                    Console.WriteLine($"Минуло 3 дні.");
+                    Console.WriteLine("Минуло 3 дні.");
                     Console.WriteLine($"Зараз день {CurrentDay}.");
+                    Console.WriteLine(
+                        $"Ситість: {Player.Satiety}/{Player.MaxSatiety}");
                     Console.WriteLine();
                     Console.WriteLine($"Ви прибули до {city.Name}.");
 

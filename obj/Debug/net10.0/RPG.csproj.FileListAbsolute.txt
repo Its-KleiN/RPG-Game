@@ -12,3 +12,4 @@ C:\Users\KleiN\IT projects\RPG\obj\Debug\net10.0\refint\RPG.dll
 C:\Users\KleiN\IT projects\RPG\obj\Debug\net10.0\RPG.pdb
 C:\Users\KleiN\IT projects\RPG\obj\Debug\net10.0\RPG.genruntimeconfig.cache
 C:\Users\KleiN\IT projects\RPG\obj\Debug\net10.0\ref\RPG.dll
+C:\Users\KleiN\IT projects\RPG\obj\Debug\net10.0\RPG.sourcelink.json
